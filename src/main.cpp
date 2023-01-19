@@ -8,8 +8,8 @@
 const char* ssid = SSID;
 const char* password = PASSWORD;
 
-int optoPin = 13;
-int statePin = 15;
+int optoPin = 13;  // D7
+int statePin = 15; // D8
 int PCState = false;
 
 bool PCStateCheck = false;
