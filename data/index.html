@@ -1,0 +1,15 @@
+<html>
+<body>
+  <h1>ESP8266 Web Server</h1>
+  <p>PC State: <span id='pc-state'>Loading...</span></p>
+  <form method='get' action='/toggle'>
+    <input type='submit' value='Toggle'>
+  </form>
+  <script>
+    var socket = new WebSocket('ws://' + window.location.hostname + ':81');
+    socket.onmessage = function(event) {
+      document.getElementById('pc-state').innerHTML = event.data;
+    };
+  </script>
+</body>
+</html>
