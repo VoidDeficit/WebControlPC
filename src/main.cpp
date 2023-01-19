@@ -1,33 +1,32 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
+#include <ESPAsyncWebServer.h>
+#include <WebSocketsServer.h>
 #include <TaskScheduler.h>
 #include "secrets.h"
 
 const char* ssid = SSID;
 const char* password = PASSWORD;
 
-Scheduler runner;
-
-int optoPin = 2;
+int optoPin = 13;
 int statePin = 15;
-int PCState;
+int PCState = false;
 
-ESP8266WebServer server(80);
+bool PCStateCheck = false;
+bool toggle_state = false;
+String event = "OFF";
 
-// 0 = HIGH // 1 = LOW
-void checkPCState() {
-  if (digitalRead(statePin) == HIGH) {
-    PCState = HIGH;
-  } else if (digitalRead(statePin) == LOW)
-  {
-    PCState = LOW;
-  }
+Scheduler checkPCStaterunner;
+
+AsyncWebServer server(80);
+WebSocketsServer webSocket = WebSocketsServer(81);
+
+void handleToggle(AsyncWebServerRequest *request) {
+  request->redirect("/");
+  toggle_state = true;
 }
 
-Task checkPCStateTask(1000, TASK_FOREVER, &checkPCState);
-
-void handleRoot() {
+void handleRoot(AsyncWebServerRequest *request) {
   String html = "<html><body>";
   html += "<h1>ESP8266 Web Server</h1>";
   html += "<p>PC State: <span id='pc-state'>Loading...</span></p>";
@@ -35,35 +34,37 @@ void handleRoot() {
   html += "<input type='submit' value='Toggle'>";
   html += "</form>";
   html += "<script>";
-  html += "var source = new EventSource('/events');";
-  html += "source.onmessage = function(event) {";
+  html += "var socket = new WebSocket('ws://' + window.location.hostname + ':81');";
+  html += "socket.onmessage = function(event) {";
   html += "document.getElementById('pc-state').innerHTML = event.data;";
   html += "};";
   html += "</script>";
   html += "</body></html>";
-  server.send(200, "text/html", html);
+  request->send(200, "text/html", html);
 }
 
-void handleToggle() {
-  PCState = !PCState;
-  Serial.print("Power ");
-  Serial.println(PCState);
-  digitalWrite(optoPin, HIGH);
-  delay(2000);
-  digitalWrite(optoPin, LOW);
-  server.sendHeader("Location", "/", true);
-  server.send(303);
-}
-
-void handleEvents() {
-  String event = "data: ";
-  if (PCState) {
-    event += "ON";
-  } else {
-    event += "OFF";
+void checkPCState() {
+  int currentState = digitalRead(statePin);
+  if (currentState != PCState) {
+    Serial.println("changed");
+    PCState = currentState;
   }
-  event += "\n\n";
-  server.send(200, "text/event-stream", event);
+  PCStateCheck = true;
+}
+
+Task checkPCStateTask(100, TASK_FOREVER, &checkPCState);
+
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+  switch(type) {
+    case WStype_DISCONNECTED:
+      //Serial.printf("[%u] Disconnected!\n", num);
+      break;
+    case WStype_CONNECTED: {
+        IPAddress ip = webSocket.remoteIP(num);
+        //Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+      }
+      break;
+  }
 }
 
 void setup() {
@@ -74,7 +75,7 @@ void setup() {
 
   pinMode(statePin, INPUT);
 
-  runner.addTask(checkPCStateTask);
+  checkPCStaterunner.addTask(checkPCStateTask);
   checkPCStateTask.enable();
 
   WiFi.begin(ssid, password);
@@ -87,14 +88,42 @@ void setup() {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  server.on("/", handleRoot);
-  server.on("/toggle", handleToggle);
-  server.on("/events", handleEvents);
+  server.on("/", HTTP_GET, handleRoot);
+  server.on("/toggle", HTTP_GET, handleToggle);
   server.begin();
   Serial.println("Server started");
+
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
 }
 
 void loop() {
-  runner.execute();
-  server.handleClient();
+  checkPCStaterunner.execute();
+  if (PCStateCheck) {
+    if (PCState) {
+      event = "ON";
+    } else {
+      event = "OFF";
+    }
+    webSocket.broadcastTXT(event);
+    PCStateCheck = false;
+  }
+
+  if (toggle_state) {
+    PCState = !PCState;
+    if (PCState) {
+      Serial.println("Turning on");
+      digitalWrite(optoPin, HIGH);
+      delay(2000);
+      digitalWrite(optoPin, LOW);
+    } else {
+      Serial.println("Turning off");
+      digitalWrite(optoPin, HIGH);
+      delay(2000); 
+      digitalWrite(optoPin, LOW);
+    }
+    toggle_state = false;
+  }
+
+  webSocket.loop();
 }
