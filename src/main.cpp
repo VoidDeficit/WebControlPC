@@ -27,32 +27,29 @@ void handleToggle(AsyncWebServerRequest *request) {
 }
 
 void handleRoot(AsyncWebServerRequest *request) {
-  String html = "<html><body>";
-  html += "<h1>ESP8266 Web Server</h1>";
-  html += "<p>PC State: <span id='pc-state'>Loading...</span></p>";
-  html += "<form method='get' action='/toggle'>";
-  html += "<input type='submit' value='Toggle'>";
-  html += "</form>";
-  html += "<script>";
-  html += "var socket = new WebSocket('ws://' + window.location.hostname + ':81');";
-  html += "socket.onmessage = function(event) {";
-  html += "document.getElementById('pc-state').innerHTML = event.data;";
-  html += "};";
-  html += "</script>";
-  html += "</body></html>";
-  request->send(200, "text/html", html);
+  if (!SPIFFS.begin()) {
+    request->send(500, "text/plain", "SPIFFS initialization failed");
+    return;
+  }
+
+  File indexFile = SPIFFS.open("/index.html", "r");
+
+  if (!indexFile) {
+    request->send(404, "text/plain", "File not found");
+    return;
+  }
+
+  String html = indexFile.readString();
+  indexFile.close();
+
+ request->send(200, "text/html", html);
 }
 
 void checkPCState() {
-  int currentState = digitalRead(statePin);
-  if (currentState != PCState) {
-    Serial.println("changed");
-    PCState = currentState;
-  }
   PCStateCheck = true;
 }
 
-Task checkPCStateTask(100, TASK_FOREVER, &checkPCState);
+Task checkPCStateTask(1000, TASK_FOREVER, &checkPCState);
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
   switch(type) {
@@ -61,6 +58,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       break;
     case WStype_CONNECTED: {
         IPAddress ip = webSocket.remoteIP(num);
+        webSocket.broadcastTXT(event);
         //Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
       }
       break;
@@ -90,6 +88,7 @@ void setup() {
 
   server.on("/", HTTP_GET, handleRoot);
   server.on("/toggle", HTTP_GET, handleToggle);
+
   server.begin();
   Serial.println("Server started");
 
@@ -100,12 +99,16 @@ void setup() {
 void loop() {
   checkPCStaterunner.execute();
   if (PCStateCheck) {
-    if (PCState) {
-      event = "ON";
-    } else {
-      event = "OFF";
+    int currentState = digitalRead(statePin);
+    if (currentState != PCState) {
+      PCState = currentState;
+      if (PCState) {
+        event = "ON";
+      } else {
+        event = "OFF";
+      }
+      webSocket.broadcastTXT(event);
     }
-    webSocket.broadcastTXT(event);
     PCStateCheck = false;
   }
 
@@ -113,16 +116,19 @@ void loop() {
     PCState = !PCState;
     if (PCState) {
       Serial.println("Turning on");
+      event = "ON";
       digitalWrite(optoPin, HIGH);
       delay(2000);
       digitalWrite(optoPin, LOW);
     } else {
       Serial.println("Turning off");
+      event = "OFF";
       digitalWrite(optoPin, HIGH);
       delay(2000); 
       digitalWrite(optoPin, LOW);
     }
     toggle_state = false;
+    webSocket.broadcastTXT(event);
   }
 
   webSocket.loop();
