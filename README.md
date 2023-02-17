@@ -11,10 +11,7 @@ A simple web control application to toggle the power state of a computer connect
 1. Clone the repository to your local machine ⋅
 2. Open the project in your Arduino IDE
 3. Install the required libraries:
-4. ⋅⋅1. Ordered sub-list
-
-⋅⋅1. Ordered sub-list
-⋅⋅3. ArduinoJson
+ArduinoJson
 ESPAsyncWebServer
 AsyncJson
 WebSocketsServer
