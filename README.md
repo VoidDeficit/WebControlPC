@@ -38,5 +38,5 @@ The web interface is hosted on port 80 and can be accessed by navigating to the 
 ## WebSocket Interface
 The WebSocket interface is hosted on port 81 and broadcasts the power state of your PC to all connected clients.
 
-##Credits
+### Credits
 This project was created by VoidDeficit and is licensed under the MIT License.
