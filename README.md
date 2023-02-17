@@ -27,16 +27,16 @@ A simple web control application to toggle the power state of a computer connect
 5. Upload the sketch to your ESP8266 module
 
 # Usage
-Connect the ESP8266 module to your PC via the optocoupler
-Connect to the same WiFi network as your ESP8266 module
-Open a web browser and navigate to the IP address of your ESP8266 module
-Use the toggle button on the web interface to switch the power state of your PC
-The power state of your PC will also be broadcasted to all connected WebSocket clients
-Web Interface
-The web interface is hosted on port 80 and can be accessed by navigating to the IP address of your ESP8266 module.
+1. Connect the ESP8266 module to your PC via the optocoupler
+2. Connect to the same WiFi network as your ESP8266 module
+3. Open a web browser and navigate to the IP address of your ESP8266 module
+4. Use the toggle button on the web interface to switch the power state of your PC
+5. The power state of your PC will also be broadcasted to all connected WebSocket clients
+# Web Interface
+1. The web interface is hosted on port 80 and can be accessed by navigating to the IP address of your ESP8266 module.
 
-WebSocket Interface
-The WebSocket interface is hosted on port 81 and broadcasts the power state of your PC to all connected clients.
+# WebSocket Interface
+1. The WebSocket interface is hosted on port 81 and broadcasts the power state of your PC to all connected clients.
 
 Credits
 This project was created by VoidDeficit and is licensed under the MIT License.
