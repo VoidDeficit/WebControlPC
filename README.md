@@ -8,14 +8,14 @@ A simple web control application to toggle the power state of a computer connect
 4. PC with a power switch
 
 # Installation
-1. Clone the repository to your local machine ⋅
+1. Clone the repository to your local machine
 2. Open the project in your Arduino IDE
 3. Install the required libraries:
-ArduinoJson
-ESPAsyncWebServer
-AsyncJson
-WebSocketsServer
-LittleFS
++ ArduinoJson
++ ESPAsyncWebServer
++ AsyncJson
++ WebSocketsServer
++ LittleFS
 4. Modify the secrets.h file with your WiFi credentials
 5. Upload the sketch to your ESP8266 module
 
