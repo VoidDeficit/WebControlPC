@@ -1,15 +1,17 @@
 # WebControlPC (WCP)
 A simple web control application to toggle the power state of a computer connected to an ESP8266 module.
 
-Hardware requirements
+# Hardware requirements
 ESP8266 module
 Optocoupler
 Some wires
 PC with a power switch
-Installation
+
+# Installation
 Clone the repository to your local machine
 Open the project in your Arduino IDE
-Install the required libraries:
+
+# Install the required libraries:
 ArduinoJson
 ESPAsyncWebServer
 AsyncJson
@@ -17,7 +19,8 @@ WebSocketsServer
 LittleFS
 Modify the secrets.h file with your WiFi credentials
 Upload the sketch to your ESP8266 module
-Usage
+
+# Usage
 Connect the ESP8266 module to your PC via the optocoupler
 Connect to the same WiFi network as your ESP8266 module
 Open a web browser and navigate to the IP address of your ESP8266 module
