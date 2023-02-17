@@ -1,8 +1,9 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <ESPAsyncWebServer.h>
+#include <ArduinoJson.h>
+#include "ESPAsyncWebServer.h"
+#include <AsyncJson.h>
 #include <WebSocketsServer.h>
-#include <TaskScheduler.h>
 #include "LittleFS.h"
 #include "secrets.h"
 
@@ -13,11 +14,10 @@ int optoPin = 13;  // D7
 int statePin = 15; // D8
 int PCState = false;
 
-bool PCStateCheck = false;
+unsigned long lastTime = 0;
+
 bool toggle_state = false;
 String event = "OFF";
-
-Scheduler checkPCStaterunner;
 
 AsyncWebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
@@ -52,11 +52,12 @@ void handleRoot(AsyncWebServerRequest *request) {
   request->send(200, "text/html", html);
 }
 
-void checkPCState() {
-  PCStateCheck = true;
+void handleJsonRequest(AsyncWebServerRequest *request, ArduinoJson::JsonVariant &json) {
+  String jsonString;
+  json["state"] = PCState;
+  serializeJson(json, jsonString);
+  request->send(200, "application/json", jsonString);
 }
-
-Task checkPCStateTask(1000, TASK_FOREVER, &checkPCState);
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
   switch(type) {
@@ -107,9 +108,6 @@ void setup() {
 
   pinMode(statePin, INPUT);
 
-  checkPCStaterunner.addTask(checkPCStateTask);
-  checkPCStateTask.enable();
-
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
@@ -123,6 +121,42 @@ void setup() {
   server.on("/", HTTP_GET, handleRoot);
   server.on("/toggle", HTTP_GET, handleToggle);
 
+  server.on("/state", HTTP_GET, [](AsyncWebServerRequest *request) {
+    AsyncJsonResponse *response = new AsyncJsonResponse();
+    handleJsonRequest(request, response->getRoot());
+    delete response;
+  });
+
+  AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/state", [](AsyncWebServerRequest *request, JsonVariant &json) {
+    StaticJsonDocument<200> data;
+    if (json.is<JsonArray>())
+    {
+      data = json.as<JsonArray>();
+    }
+    else if (json.is<JsonObject>())
+    {
+      data = json.as<JsonObject>();
+    }
+
+    // Get Inf-State data from the JSON object or array
+    bool state = bool(data["state"]);
+
+    // Create a new JSON object to hold the Inf-State data
+    StaticJsonDocument<200> responseJson;
+    responseJson["State"] = state;
+
+    if (PCState != state) {
+      toggle_state = true;
+    }
+
+    String response;
+    serializeJson(responseJson, response);
+    request->send(200, "application/json", response);
+    Serial.println(state);
+  });
+
+  server.addHandler(handler);
+
   server.begin();
   Serial.println("Server started");
 
@@ -131,38 +165,21 @@ void setup() {
 }
 
 void loop() {
-  checkPCStaterunner.execute();
-  if (PCStateCheck) {
-    int currentState = digitalRead(statePin);
-    if (currentState != PCState) {
-      PCState = currentState;
-      if (PCState) {
-        event = "ON";
-      } else {
-        event = "OFF";
-      }
-      webSocket.broadcastTXT(event);
-    }
-    PCStateCheck = false;
+  if (millis() - lastTime >= 100) { lastTime = millis(); return; }
+
+  if (digitalRead(statePin) != PCState) {
+    PCState = !PCState;
+    event = (PCState) ? "ON" : "OFF";
+    webSocket.broadcastTXT(event);
   }
 
   if (toggle_state) {
     PCState = !PCState;
-    if (PCState) {
-      Serial.println("Turning on");
-      event = "ON";
-      digitalWrite(optoPin, HIGH);
-      delay(2000);
-      digitalWrite(optoPin, LOW);
-    } else {
-      Serial.println("Turning off");
-      event = "OFF";
-      digitalWrite(optoPin, HIGH);
-      delay(2000); 
-      digitalWrite(optoPin, LOW);
-    }
+    Serial.println(PCState ? "Turning on" : "Turning off");
+    digitalWrite(optoPin, HIGH);
+    delay(2000);
+    digitalWrite(optoPin, LOW);
     toggle_state = false;
-    webSocket.broadcastTXT(event);
   }
 
   webSocket.loop();
