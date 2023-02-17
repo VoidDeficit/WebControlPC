@@ -34,6 +34,7 @@ void handleRoot(AsyncWebServerRequest *request) {
   }
 
   File indexFile = LittleFS.open("/index.html", "r");
+  File cssFile = LittleFS.open("/style.css", "r"); // Neue Zeile
 
   if (!indexFile) {
     request->send(404, "text/plain", "File not found");
@@ -43,7 +44,12 @@ void handleRoot(AsyncWebServerRequest *request) {
   String html = indexFile.readString();
   indexFile.close();
 
- request->send(200, "text/html", html);
+  String css = cssFile.readString(); // Neue Zeile
+  cssFile.close(); // Neue Zeile
+
+  html.replace("</head>", "<style>" + css + "</style></head>"); // Neue Zeile
+
+  request->send(200, "text/html", html);
 }
 
 void checkPCState() {
