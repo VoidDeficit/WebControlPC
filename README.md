@@ -2,7 +2,7 @@
 A simple web control application to toggle the power state of a computer connected to an ESP8266 module.
 
 # Hardware requirements
-1.ESP8266 module
+1. ESP8266 module
 .Optocoupler
 .Some wires
 .PC with a power switch
@@ -32,4 +32,4 @@ WebSocket Interface
 The WebSocket interface is hosted on port 81 and broadcasts the power state of your PC to all connected clients.
 
 Credits
-This project was created by [Your Name] and is licensed under the MIT License.
+This project was created by VoidDeficit and is licensed under the MIT License.
