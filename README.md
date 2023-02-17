@@ -13,7 +13,6 @@ A simple web control application to toggle the power state of a computer connect
 3. Install the required libraries:
 + ArduinoJson
 + ESPAsyncWebServer
-+ AsyncJson
 + WebSocketsServer
 + LittleFS
 4. Modify the secrets.h file with your WiFi credentials
