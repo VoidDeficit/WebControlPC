@@ -3,6 +3,7 @@
 #include <ESPAsyncWebServer.h>
 #include <WebSocketsServer.h>
 #include <TaskScheduler.h>
+#include "LittleFS.h"
 #include "secrets.h"
 
 const char* ssid = SSID;
@@ -27,12 +28,12 @@ void handleToggle(AsyncWebServerRequest *request) {
 }
 
 void handleRoot(AsyncWebServerRequest *request) {
-  if (!SPIFFS.begin()) {
-    request->send(500, "text/plain", "SPIFFS initialization failed");
+  if (!LittleFS.begin()) {
+    request->send(500, "text/plain", "LittleFS initialization failed");
     return;
   }
 
-  File indexFile = SPIFFS.open("/index.html", "r");
+  File indexFile = LittleFS.open("/index.html", "r");
 
   if (!indexFile) {
     request->send(404, "text/plain", "File not found");
@@ -54,13 +55,40 @@ Task checkPCStateTask(1000, TASK_FOREVER, &checkPCState);
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
   switch(type) {
     case WStype_DISCONNECTED:
-      //Serial.printf("[%u] Disconnected!\n", num);
+      Serial.printf("[%u] Disconnected!\n", num);
       break;
     case WStype_CONNECTED: {
         IPAddress ip = webSocket.remoteIP(num);
         webSocket.broadcastTXT(event);
-        //Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
       }
+      break;
+    case WStype_TEXT:
+      // handle text messages
+      break;
+    case WStype_BIN:
+      // handle binary messages
+      break;
+    case WStype_ERROR:
+      // handle errors
+      break;
+    case WStype_FRAGMENT_TEXT_START:
+      // handle text fragments
+      break;
+    case WStype_FRAGMENT_BIN_START:
+      // handle binary fragments
+      break;
+    case WStype_FRAGMENT:
+      // handle fragments
+      break;
+    case WStype_FRAGMENT_FIN:
+      // handle end of fragments
+      break;
+    case WStype_PING:
+      // handle ping
+      break;
+    case WStype_PONG:
+      // handle pong
       break;
   }
 }
