@@ -5,8 +5,8 @@ A simple web control application to toggle the power state of a computer connect
 1. [ESP8266 module](https://www.amazon.com/s?k=esp8266)
 2. [Optocoupler](https://www.amazon.com/s?k=Optokoppler+PC817)
  use 220 ohms resistance
-4. Some wires
-5. PC with a power switch
+3. Some wires
+4. PC with a power switch
 
 # Installation
 1. Clone the repository to your local machine
@@ -17,6 +17,11 @@ A simple web control application to toggle the power state of a computer connect
 + WebSocketsServer
 + LittleFS
 4. Modify the secrets.h file with your WiFi credentials
+## secrets.h
+```
+#define SSID "SSID"
+#define PASSWORD "PASSWORD"
+```
 5. Upload the sketch to your ESP8266 module
 
 # Usage
