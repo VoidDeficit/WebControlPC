@@ -2,7 +2,7 @@
 A simple web control application to toggle the power state of a computer connected to an ESP8266 module.
 
 # Hardware requirements
-.ESP8266 module
+1.ESP8266 module
 .Optocoupler
 .Some wires
 .PC with a power switch
