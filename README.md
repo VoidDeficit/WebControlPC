@@ -10,14 +10,15 @@ A simple web control application to toggle the power state of a computer connect
 
 # Installation
 1. Clone the repository to your local machine
-2. Open the project in [vscode](https://code.visualstudio.com/download) [installation](https://www.youtube.com/watch?v=ft89u3hcb3c)
-3. Install [platformio](https://www.youtube.com/watch?v=sm6QxJkWcSc)
-4. Install the required libraries:
+2. Open the project in [vscode](https://code.visualstudio.com/download) 
+. [installation](https://www.youtube.com/watch?v=ft89u3hcb3c)
+4. Install [platformio](https://www.youtube.com/watch?v=sm6QxJkWcSc)
+5. Install the required libraries:
 + ArduinoJson
 + ESPAsyncWebServer
 + WebSocketsServer
 + LittleFS
-5. Modify the secrets.h file with your WiFi credentials
+6. Modify the secrets.h file with your WiFi credentials
 ## secrets.h
 ```
 #define SSID "SSID"
