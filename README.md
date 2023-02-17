@@ -2,8 +2,8 @@
 A simple web control application to toggle the power state of a computer connected to an ESP8266 module.
 
 # Hardware requirements
-1. [ESP8266 module](www.amazon.com/s?k=esp8266)
-2. [Optocoupler](www.amazon.com/s?k=Optokoppler+PC817)
+1. [ESP8266 module](https://www.amazon.com/s?k=esp8266)
+2. [Optocoupler](https://www.amazon.com/s?k=Optokoppler+PC817)
  use 220 ohms resistance
 4. Some wires
 5. PC with a power switch
