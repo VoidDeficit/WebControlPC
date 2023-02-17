@@ -2,16 +2,15 @@
 A simple web control application to toggle the power state of a computer connected to an ESP8266 module.
 
 # Hardware requirements
-ESP8266 module
-Optocoupler
-Some wires
-PC with a power switch
+1.ESP8266 module
+2.Optocoupler
+3.Some wires
+4.PC with a power switch
 
 # Installation
 Clone the repository to your local machine
 Open the project in your Arduino IDE
-
-# Install the required libraries:
+Install the required libraries:
 ArduinoJson
 ESPAsyncWebServer
 AsyncJson
