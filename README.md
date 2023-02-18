@@ -35,6 +35,10 @@ A simple web control application to toggle the power state of a computer connect
 ### Web Interface
 The web interface is hosted on port 80 and can be accessed by navigating to the IP address of your ESP8266 module.
 
+### JSON API
+* The API is accessible through the "/state" endpoint, and clients can send a GET request to retrieve the current state of the server.
+* You also can sent data with a Json POST request to set the PC state
+
 Python Exmaple:
 ```
 import requests
