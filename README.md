@@ -14,10 +14,10 @@ A simple web control application to toggle the power state of a computer connect
 . [installation](https://www.youtube.com/watch?v=ft89u3hcb3c)
 4. Install [platformio](https://www.youtube.com/watch?v=sm6QxJkWcSc)
 5. Install the required libraries:
-+ ArduinoJson
-+ ESPAsyncWebServer
-+ WebSocketsServer
-+ LittleFS
+⋅⋅* ArduinoJson
+⋅⋅* ESPAsyncWebServer
+⋅⋅* WebSocketsServer
+⋅⋅* LittleFS
 6. Modify the secrets.h file with your WiFi credentials
 ### secrets.h
 ```
@@ -39,8 +39,8 @@ The web interface is hosted on port 80 and can be accessed by navigating to the 
 The WebSocket interface is hosted on port 81 and broadcasts the power state of your PC to all connected clients.
 
 ### JSON API
-The API is accessible through the "/state" endpoint, and clients can send a GET request to retrieve the current state of the server. 
-/nThe state is returned in JSON format.
+⋅⋅⋅.The API is accessible through the "/state" endpoint, and clients can send a GET request to retrieve the current state of the server.⋅⋅
+⋅⋅⋅The state is returned in JSON format.
 
 # Credits
 This project was created by VoidDeficit and is licensed under the MIT License.
