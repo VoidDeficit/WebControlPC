@@ -14,10 +14,10 @@ A simple web control application to toggle the power state of a computer connect
 . [installation](https://www.youtube.com/watch?v=ft89u3hcb3c)
 3. Install [platformio](https://www.youtube.com/watch?v=sm6QxJkWcSc)
 4. Install the required libraries:
-+ ArduinoJson
-+ ESPAsyncWebServer
-+ WebSocketsServer
-+ LittleFS
+* ArduinoJson
+* ESPAsyncWebServer
+* WebSocketsServer
+* LittleFS
 5. Modify the secrets.h file with your WiFi credentials
 ### secrets.h
 ```
