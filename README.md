@@ -39,7 +39,7 @@ The web interface is hosted on port 80 and can be accessed by navigating to the 
 The WebSocket interface is hosted on port 81 and broadcasts the power state of your PC to all connected clients.
 
 ### JSON API
-⋅⋅⋅.The API is accessible through the "/state" endpoint, and clients can send a GET request to retrieve the current state of the server.⋅⋅
+⋅⋅⋅.The API is accessible through the "/state" endpoint, and clients can send a GET request to retrieve the current state of the server.
 ⋅⋅⋅The state is returned in JSON format.
 
 # Credits
