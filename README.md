@@ -32,8 +32,6 @@ A simple web control application to toggle the power state of a computer connect
 3. Open a web browser and navigate to the IP address of your ESP8266 module
 4. Use the toggle button on the web interface to switch the power state of your PC
 5. The power state of your PC will be broadcasted to all connected WebSocket clients
-### Web Interface
-The web interface is hosted on port 80 and can be accessed by navigating to the IP address of your ESP8266 module.
 
 ### JSON API
 * The API is accessible through the "/state" endpoint, and clients can send a GET request to retrieve the current state of the server.
