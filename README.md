@@ -46,7 +46,7 @@ Python Exmaple:
 ```
 import requests
 
-url = 'http://192.168.0.40/state'
+url = 'http://your-ip-here/state'
 headers = {'Content-Type': 'application/json'}
 data = {'state': True}
 
