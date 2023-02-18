@@ -35,7 +35,6 @@ A simple web control application to toggle the power state of a computer connect
 ### Web Interface
 The web interface is hosted on port 80 and can be accessed by navigating to the IP address of your ESP8266 module.
 
-
 Python Exmaple:
 ```
 import requests
