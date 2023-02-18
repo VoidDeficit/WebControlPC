@@ -147,6 +147,8 @@ void setup() {
 
     if (PCState != state) {
       toggle_state = true;
+      event = (state) ? "ON" : "OFF";
+      webSocket.broadcastTXT(event);
     }
 
     String response;
@@ -176,6 +178,8 @@ void loop() {
   if (toggle_state) {
     PCState = !PCState;
     Serial.println(PCState ? "Turning on" : "Turning off");
+    event = (PCState) ? "ON" : "OFF";
+    webSocket.broadcastTXT(event);
     digitalWrite(optoPin, HIGH);
     delay(2000);
     digitalWrite(optoPin, LOW);
