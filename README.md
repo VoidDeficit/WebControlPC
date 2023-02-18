@@ -55,7 +55,7 @@ response = requests.post(url, headers=headers, json=data)
 print(response.status_code) # prints the HTTP status code of the response
 
 ```
-* The state is returned in JSON format.)
+* The state is returned in JSON format.
 
 # Credits
 This project was created by VoidDeficit and is licensed under the MIT License.
