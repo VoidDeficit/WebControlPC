@@ -13,7 +13,7 @@ A simple web control application to toggle the power state of a computer connect
 2. Open the project in [vscode](https://code.visualstudio.com/download) 
 . [installation](https://www.youtube.com/watch?v=ft89u3hcb3c)
 3. Install [platformio](https://www.youtube.com/watch?v=sm6QxJkWcSc)
-4. Install the required libraries:
+4. Install the required libraries:.
 ⋅⋅4. ArduinoJson
 ⋅⋅4. ESPAsyncWebServer
 ⋅⋅4. WebSocketsServer
