@@ -174,8 +174,8 @@ void loop() {
     event = (PCState) ? "ON" : "OFF";
     webSocket.broadcastTXT(event);
   }
-
-  if (toggle_state) {
+  //toggle_state
+  if (false) {
     PCState = !PCState;
     Serial.println(PCState ? "Turning on" : "Turning off");
     event = (PCState) ? "ON" : "OFF";
