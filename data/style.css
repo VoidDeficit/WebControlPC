@@ -33,4 +33,23 @@ body {
   input[type="submit"]:hover {
     background-color: #27ae60;
   }
-  
+
+#confirm-dialog {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border: 1px solid black;
+    padding: 20px;
+    text-align: center;
+}
+
+#confirm-dialog p {
+    margin: 0 0 20px ;
+}
+
+#confirm-dialog button {
+    margin: 0 10px;
+}

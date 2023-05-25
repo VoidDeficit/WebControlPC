@@ -11,24 +11,59 @@
   <div class="container">
     <h1>Home PC Control</h1>
     <p>PC State: <span id='pc-state'>Loading...</span></p>
-    <form method='get' action='/toggle'>
+    <form method='get' action='/toggle' id='toggle-form'>
       <input type='submit' value='Toggle'>
     </form>
     <div class="custom-control custom-switch">
       <input type="checkbox" class="custom-control-input" id="pc-switch">
-      <label class="custom-control-label" for="pc-switch">Toggle</label>
+      <label class="custom-control-label" for="pc-switch">Power on Startup</label>
     </div>
+  </div>
+  <div id='confirm-dialog'>
+    <p>Are you sure you want to shut down the computer?</p>
+    <button id='confirm-yes'>Yes</button>
+    <button id='confirm-no'>No</button>
   </div>
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   <script>
+    // Get the form, confirmation dialog, and buttons
+    var toggleForm = document.getElementById('toggle-form');
+    var confirmDialog = document.getElementById('confirm-dialog');
+    var confirmYes = document.getElementById('confirm-yes');
+    var confirmNo = document.getElementById('confirm-no');
+    infoText = document.querySelector("#confirm-dialog > p");
+  
+    // Add an event listener to the form to show the confirmation dialog
+    toggleForm.addEventListener('submit', function(event) {
+      // Check if the PC state is ON before showing the confirmation dialog
+      if (document.getElementById('pc-state').innerHTML === 'ON')  {
+        event.preventDefault(); // Prevent the form from submitting
+        confirmDialog.style.display = 'block'; // Show the confirmation dialog
+      } else if (document.getElementById('pc-state').innerHTML === 'Loading...')   {
+        event.preventDefault(); // Prevent the form from submitting
+      }
+    });
+  
+    // Add an event listener to the confirmation dialog buttons
+    confirmYes.addEventListener('click', function() {
+      toggleForm.submit(); // Submit the form
+    });
+  
+    confirmNo.addEventListener('click', function() {
+      confirmDialog.style.display = 'none'; // Hide the confirmation dialog
+    });
+  </script>
+  <script>
+    // Create a WebSocket object to connect to the server
     var socket = new WebSocket('ws://' + window.location.hostname + ':81');
     // Add an event listener to the switch element
     $('#pc-switch').on('change', function() {
       // Send a message to the server to toggle the PC state
       socket.send('toggle');
     });
+    // Add an event listener to the WebSocket object to update the PC state
     socket.onmessage = function(event) {
       document.getElementById('pc-state').innerHTML = event.data;
     };

@@ -9,6 +9,7 @@
 
 const char* ssid = SSID;
 const char* password = PASSWORD;
+const char* hostname = "home-pc-control"; // Change this to your desired hostname
 
 int optoPin = 13;  // D7
 int statePin = 15; // D8
@@ -44,12 +45,28 @@ void handleRoot(AsyncWebServerRequest *request) {
   String html = indexFile.readString();
   indexFile.close();
 
+  //String css = cssFile.readString();
+  //cssFile.close();
+
+  //html.replace("</head>", "<style>" + css + "</style></head>");
+  request->send(200, "text/html", html);
+}
+
+void handleCss(AsyncWebServerRequest *request) {
+  if (!LittleFS.begin()) {
+    request->send(500, "text/plain", "LittleFS initialization failed");
+    return;
+  }
+
+  File cssFile = LittleFS.open("/style.css", "r");
+  if (!cssFile) {
+    request->send(404, "text/plain", "File not found");
+    return;
+  }
+
   String css = cssFile.readString();
   cssFile.close();
-
-  html.replace("</head>", "<style>" + css + "</style></head>");
-
-  request->send(200, "text/html", html);
+  request->send(200, "text/css", css);
 }
 
 void handleJsonRequest(AsyncWebServerRequest *request, ArduinoJson::JsonVariant &json) {
@@ -67,11 +84,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
     case WStype_CONNECTED: {
         //IPAddress ip = webSocket.remoteIP(num);
         webSocket.broadcastTXT(event);
-        //Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
       }
       break;
     case WStype_TEXT:
-      // handle text messages
+      //handle text messages
+      Serial.printf("[%u] Text message: %s\n", num, (char*)payload);
       break;
     case WStype_BIN:
       // handle binary messages
@@ -95,19 +113,20 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       // handle ping
       break;
     case WStype_PONG:
-      // handle pong
+      // handle
       break;
   }
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   pinMode(optoPin, OUTPUT);
   digitalWrite(optoPin, LOW);
 
   pinMode(statePin, INPUT);
 
+  WiFi.hostname(hostname); // Set the hostname
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
@@ -119,6 +138,7 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   server.on("/", HTTP_GET, handleRoot);
+  server.on("/style.css", HTTP_GET, handleCss);
   server.on("/toggle", HTTP_GET, handleToggle);
 
   server.on("/state", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -175,7 +195,7 @@ void loop() {
     webSocket.broadcastTXT(event);
   }
   //toggle_state
-  if (false) {
+  if (toggle_state) {
     PCState = !PCState;
     Serial.println(PCState ? "Turning on" : "Turning off");
     event = (PCState) ? "ON" : "OFF";
