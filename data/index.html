@@ -2,21 +2,21 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Home PC Control</title>
+  <title>WebControlPC</title>
   <!-- Include the Bootstrap CSS file -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>Home PC Control</h1>
+    <h1>WebControlPC</h1>
     <p>PC State: <span id='pc-state'>Loading...</span></p>
     <form method='get' action='/toggle' id='toggle-form'>
       <input type='submit' value='Toggle'>
     </form>
     <div class="custom-control custom-switch">
-      <input type="checkbox" class="custom-control-input" id="pc-switch">
-      <label class="custom-control-label" for="pc-switch">Power on Startup</label>
+      <input type="checkbox" class="custom-control-input" id="setting-startup">
+      <label class="custom-control-label" for="setting-startup">Power on Startup</label>
     </div>
   </div>
   <div id='confirm-dialog'>
@@ -59,13 +59,37 @@
     // Create a WebSocket object to connect to the server
     var socket = new WebSocket('ws://' + window.location.hostname + ':81');
     // Add an event listener to the switch element
-    $('#pc-switch').on('change', function() {
-      // Send a message to the server to toggle the PC state
-      socket.send('toggle');
+    $('#setting-startup').on('change', function() {
+      // Get the state of the switch
+      var switchState = document.getElementById('setting-startup').checked;
+      // Send a message to the server
+      if (switchState) {
+        socket.send('setting_changed: power_on_startup=' + true);
+        console.log(switchState);
+      } else {
+        socket.send('setting_changed: power_on_startup=' + false);
+        console.log(switchState);
+      }
     });
     // Add an event listener to the WebSocket object to update the PC state
     socket.onmessage = function(event) {
-      document.getElementById('pc-state').innerHTML = event.data;
+      var message = event.data;
+      
+      if (message.startsWith("pcstate=")) {
+        console.log(message)
+        // Extract the value of the switch from the message
+        var PCStateValue = message.substring(8);
+        console.log("pcstate="+String(PCStateValue))
+        // Update the state of the switch on the webpage
+        document.getElementById('pc-state').innerHTML = Boolean(parseInt(PCStateValue));
+      } else if (message.startsWith("power_on_startup=")) {
+        console.log(message)
+        // Extract the value of the switch from the message
+        var switchValue = message.substring(17);
+        // Update the state of the switch on the webpage
+        console.log("power_on_startup="+String(switchValue))
+        document.getElementById('setting-startup').checked = parseInt(switchValue);
+      }
     };
   </script>
 </body>

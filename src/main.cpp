@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
+#include <Preferences.h>
 #include <ArduinoJson.h>
 #include "ESPAsyncWebServer.h"
 #include <AsyncJson.h>
@@ -16,9 +17,12 @@ int statePin = 15; // D8
 int PCState = false;
 
 unsigned long lastTime = 0;
+unsigned long lastchangingTime = 0;
 
+bool demo_mode = true;
 bool toggle_state = false;
-String event = "OFF";
+bool changing = false;
+bool powerOnStartup = false;
 
 AsyncWebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
@@ -82,14 +86,36 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         //Serial.printf("[%u] Disconnected!\n", num);
       break;
     case WStype_CONNECTED: {
-        //IPAddress ip = webSocket.remoteIP(num);
-        webSocket.broadcastTXT(event);
+        IPAddress ip = webSocket.remoteIP(num);
+        webSocket.broadcastTXT(("pcstate="+String(PCState)).c_str());
+        webSocket.broadcastTXT(("power_on_startup="+String(powerOnStartup)).c_str());
         Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
       }
       break;
-    case WStype_TEXT:
+    case WStype_TEXT: {
       //handle text messages
       Serial.printf("[%u] Text message: %s\n", num, (char*)payload);
+      String message = String((char*)payload);
+      if (message.startsWith("setting_changed: power_on_startup=")) {
+        // Extract the value of the switch from the message
+        Serial.println(message.substring(strlen("setting_changed: power_on_startup=")));
+        if (message.substring(strlen("setting_changed: power_on_startup=")) == "true") {
+          powerOnStartup = 1;
+        } else {
+          powerOnStartup = 0;
+        }
+        Serial.print("power_on_startup=");
+        Serial.println(powerOnStartup);
+
+        webSocket.broadcastTXT(("power_on_startup="+String(powerOnStartup)).c_str());
+
+        // Save the switch value to the Flash memory
+        Preferences preferences;
+        preferences.begin("settings", false);
+        preferences.putBool("power_on_startup", powerOnStartup);
+        preferences.end();
+      }
+      }
       break;
     case WStype_BIN:
       // handle binary messages
@@ -121,10 +147,30 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 void setup() {
   Serial.begin(115200);
 
+  // Initialize variables and pins
+
+  Preferences preferences;
+  preferences.begin("settings", true);
+  powerOnStartup = preferences.getBool("power_on_startup", false);
+  preferences.end();
+
   pinMode(optoPin, OUTPUT);
   digitalWrite(optoPin, LOW);
 
   pinMode(statePin, INPUT);
+
+  if (powerOnStartup) {
+    if (digitalRead(statePin) != true) {
+      PCState = !PCState;
+      Serial.println("Turning on");
+      changing = true;
+      digitalWrite(optoPin, HIGH);
+      delay(2000);
+      digitalWrite(optoPin, LOW);
+      changing = false;
+      Serial.println("Finish");
+    }
+  }
 
   WiFi.hostname(hostname); // Set the hostname
   WiFi.begin(ssid, password);
@@ -132,10 +178,11 @@ void setup() {
     delay(1000);
     Serial.print("_");
   }
-
+  Serial.print("\n");
   Serial.println("Connected to WiFi");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+  
 
   server.on("/", HTTP_GET, handleRoot);
   server.on("/style.css", HTTP_GET, handleCss);
@@ -146,7 +193,8 @@ void setup() {
     handleJsonRequest(request, response->getRoot());
     delete response;
   });
-
+  	
+  // JSON Api
   AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/state", [](AsyncWebServerRequest *request, JsonVariant &json) {
     StaticJsonDocument<200> data;
     if (json.is<JsonArray>())
@@ -167,8 +215,7 @@ void setup() {
 
     if (PCState != state) {
       toggle_state = true;
-      event = (state) ? "ON" : "OFF";
-      webSocket.broadcastTXT(event);
+      webSocket.broadcastTXT(("pcstate="+String(PCState)).c_str());
     }
 
     String response;
@@ -181,6 +228,8 @@ void setup() {
 
   server.begin();
   Serial.println("Server started");
+  Serial.print("power_on_startup=");
+  Serial.println((powerOnStartup) ? "on" : "off");
 
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
@@ -189,21 +238,26 @@ void setup() {
 void loop() {
   if (millis() - lastTime >= 100) { lastTime = millis(); return; }
 
-  if (digitalRead(statePin) != PCState) {
-    PCState = !PCState;
-    event = (PCState) ? "ON" : "OFF";
-    webSocket.broadcastTXT(event);
-  }
-  //toggle_state
-  if (toggle_state) {
+  if (toggle_state && !changing) {
     PCState = !PCState;
     Serial.println(PCState ? "Turning on" : "Turning off");
-    event = (PCState) ? "ON" : "OFF";
-    webSocket.broadcastTXT(event);
+    changing = true;
+    webSocket.broadcastTXT(("pcstate="+String(PCState)).c_str());
     digitalWrite(optoPin, HIGH);
-    delay(2000);
-    digitalWrite(optoPin, LOW);
-    toggle_state = false;
+  } else if (millis() - lastchangingTime >= 2000) {
+    lastchangingTime = millis();
+    if (toggle_state && changing) {
+      digitalWrite(optoPin, LOW);
+      toggle_state = false;
+      changing = false;
+      Serial.println("Finish");
+    }
+  }
+
+  //digitalRead(statePin) != PCState
+  if (digitalRead(statePin) != PCState && demo_mode == false) {
+    PCState = !PCState;
+    webSocket.broadcastTXT(("pcstate="+String(PCState)).c_str());
   }
 
   webSocket.loop();
