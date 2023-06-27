@@ -19,7 +19,7 @@ int PCState = false;
 unsigned long lastTime = 0;
 unsigned long lastchangingTime = 0;
 
-bool demo_mode = true;
+bool demo_mode = false;
 bool toggle_state = false;
 bool changing = false;
 bool powerOnStartup = false;
